@@ -220,9 +220,17 @@ finish:
 /// \return true: if the weight is K
 ///         false: if the weight is not K
 int CheckCanonicalAction(const uint8_t* const b) {
+    /* [Atlas patch] only the first N bits are coordinates. UnpackCosetRep walks only those N
+     * bits, so the padding bits N..8*N8-1 must be zero; otherwise its zero-count index can reach
+     * N and write past the N-sized arrays (upstream defect: padding-bit OOB). */
     uint32_t w = 0;
-    for (uint32_t i = 0; i < N8; i++) {
-        w += (uint32_t)__builtin_popcount(b[i]);
+    for (uint32_t i = 0; i < N; i++) {
+        w += (uint32_t)((b[i / 8u] >> (i % 8u)) & 1u);
+    }
+    for (uint32_t i = N; i < 8u * N8; i++) {
+        if ((b[i / 8u] >> (i % 8u)) & 1u) {
+            return 0;
+        }
     }
 
     return w == K;
