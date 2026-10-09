@@ -39,10 +39,14 @@ void BuildGGM(unsigned char seed_tree[NUM_NODES_SEED_TREE * SEED_LENGTH_BYTES],
 /// \param indices_to_publish[in]: binary array denoting if node has to be 
 ///     released (cell == 0) or not.
 /// \param seed_storage[out]: byte array: sequence of seeds to be published
-/// \returns the number of seeds which have been published 
+/// \returns the number of seeds which have been published
 uint32_t GGMPath(const unsigned char seed_tree[NUM_NODES_SEED_TREE*SEED_LENGTH_BYTES],
                  const unsigned char indices_to_publish[T],
                  unsigned char *seed_storage);
+
+/// \param indices_to_publish[in]: binary array denoting which of the T seeds are published
+/// \returns the number of seed-tree seeds that GGMPath/RebuildGGM would store/read for this array
+uint32_t CountPublishedSeeds(const unsigned char indices_to_publish[T]);
 
 /// \param seed_tree[out]: full seed tree
 /// \param indices_to_publish[in]: binary array denoting if node has to be

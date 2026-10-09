@@ -223,6 +223,31 @@ uint32_t GGMPath(const unsigned char seed_tree[NUM_NODES_SEED_TREE*SEED_LENGTH_B
 
 /*****************************************************************************/
 
+/* [Atlas patch] counts the seeds GGMPath stores / RebuildGGM reads for a given
+ * published-index array, without touching any seed data. Same walk as GGMPath. */
+uint32_t CountPublishedSeeds(const unsigned char indices_to_publish[T]) {
+    unsigned char flags_tree_to_publish[NUM_NODES_SEED_TREE] = {NOT_TO_PUBLISH};
+    compute_seeds_to_publish(flags_tree_to_publish, indices_to_publish);
+
+    const uint16_t off[LOG2(T)+1] = TREE_OFFSETS;
+    const uint16_t npl[LOG2(T)+1] = TREE_NODES_PER_LEVEL;
+
+    int start_node = 1;
+    uint32_t count = 0;
+    for (int level = 1; level <= LOG2(T); level++) {
+        for (int node_in_level = 0; node_in_level < npl[level]; node_in_level++) {
+            uint16_t current_node = start_node + node_in_level;
+            uint16_t father_node = PARENT(current_node) + (off[level-1] >> 1);
+            if ((flags_tree_to_publish[current_node] == TO_PUBLISH) &&
+                (flags_tree_to_publish[father_node] == NOT_TO_PUBLISH)) {
+                count++;
+            }
+        }
+        start_node += npl[level];
+    }
+    return count;
+}
+
 // \return 1 on success
 //         0 on failure
 uint32_t RebuildGGM(unsigned char seed_tree[NUM_NODES_SEED_TREE*SEED_LENGTH_BYTES],

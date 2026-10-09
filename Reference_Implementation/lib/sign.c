@@ -29,6 +29,8 @@
 #include "api.h"
 
 #include "LESS.h"
+#include "seedtree.h"
+#include "utils.h"
 
 /// \param pk[out]: pointer to an uninitialized public key
 /// \param sk[out]: pointer to an uninitialized secret key
@@ -71,11 +73,35 @@ int crypto_sign_open(unsigned char *m,
                      const unsigned char *sm, unsigned long long smlen, // in parameter
                      const unsigned char *pk)                           // in parameter
 {
+    /* [Atlas patch] reject empty/short input before reading the trailing byte or
+     * computing mlen = smlen - sig_len (upstream had no such check). */
+    if (smlen < 1u) {
+        return -1;
+    }
     const uint8_t num_seeds_published = sm[smlen - 1u];
     if (num_seeds_published > MAX_PUBLISHED_SEEDS) {
         return -1;
     }
     const uint32_t sig_len = LESS_SIGNATURE_SIZE((uint32_t)num_seeds_published);
+    if (smlen < (unsigned long long)sig_len) {
+        return -1;
+    }
+
+    /* [Atlas patch] RebuildGGM reads one stored seed per published node, where the set of
+     * published nodes is derived from the challenge in the digest. Require that count to equal
+     * the number actually stored (num_seeds_published), so it never reads past the signature. */
+    {
+        const unsigned char *const sig_start = sm + (smlen - (unsigned long long)sig_len);
+        uint8_t fixed_weight_string[T] = {0};
+        unsigned char indices_to_publish[T];
+        SampleChallenge(fixed_weight_string, sig_start); /* digest is the first HASH_DIGEST_LENGTH bytes */
+        for (uint32_t i = 0; i < T; i++) {
+            indices_to_publish[i] = !!(fixed_weight_string[i]);
+        }
+        if (CountPublishedSeeds(indices_to_publish) != num_seeds_published) {
+            return -1;
+        }
+    }
 
     *mlen = smlen - (unsigned long long)sig_len;
     memcpy((unsigned char *) m, (const unsigned char *) sm, (size_t) *mlen);
