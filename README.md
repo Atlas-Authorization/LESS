@@ -1,3 +1,10 @@
+> **This is Atlas's patched fork of LESS, not an official release.** It is based on upstream commit
+> `6383430b9123e69d2ef6a6224f930972e3225610` and carries fixes for three memory-safety bugs in the
+> reference **verifier** (`crypto_sign_open` and the functions it calls), found by Atlas while fuzzing with
+> sanitizers. The changes are unreviewed by the LESS authors, and nothing here implies upstream endorsement.
+> Signing, key generation and parameters are unchanged. See `tests/` for the proofs and regression inputs.
+> Upstream was not contacted and no upstream pull request was opened.
+
 The submission for LESS contains the following:
 
 ## Reference Implementation
