@@ -42,21 +42,30 @@ int main(int argc, char **argv) {
         return 0;
     }
     long NS = (argc > 2) ? atol(argv[2]) : 100000;
-    seed_rng(7); LESS_keygen(&skfix, &pk);
+    int sd = (argc > 3) ? atoi(argv[3]) : 0, nullt = (argc > 4) && !strcmp(argv[4], "null");   /* null: BOTH classes use fresh random keys */
+    seed_rng(7 + sd); LESS_keygen(&skfix, &pk);
     static double *tm; static unsigned char *cls; tm = malloc(sizeof(double) * NS); cls = malloc(NS);
-    seed_rng(9);
+    srand(9 + sd); seed_rng(9 + sd);
     for (long i = 0; i < NS; i++) {
         cls[i] = rand() & 1;
-        if (cls[i]) { static pubkey_t p2; LESS_keygen(&sk, &p2); } else sk = skfix;   /* keygen is outside the timed region */
+        if (cls[i] || nullt) { static pubkey_t p2; LESS_keygen(&sk, &p2); } else sk = skfix;   /* keygen is outside the timed region */
         uint64_t t0 = now_ns();
         (void)LESS_sign(&sk, msg, sizeof msg, &sig);
         tm[i] = (double)(now_ns() - t0);
+        if ((i & 1023) == 1023) { fprintf(stderr, "progress %ld/%ld\n", i + 1, NS); }
     }
     double *srt = malloc(sizeof(double) * NS); memcpy(srt, tm, sizeof(double) * NS);
-    qsort(srt, NS, sizeof(double), cmp); double thr = srt[(long)(NS * 0.95)];
-    Wf w[2] = {{0}, {0}}; Wf wc[2] = {{0}, {0}};
-    for (long i = 0; i < NS; i++) { wpush(&w[cls[i]], tm[i]); if (tm[i] <= thr) wpush(&wc[cls[i]], tm[i]); }
-    printf("samples=%ld fixed_mean=%.0fns random_mean=%.0fns  t(raw)=%.3f  t(cropped95)=%.3f  |t|>4.5 => leak\n",
-           NS, w[0].mean, w[1].mean, wt(&w[0], &w[1]), wt(&wc[0], &wc[1]));
+    qsort(srt, NS, sizeof(double), cmp);
+    const double pc[] = {1.0, 0.99, 0.95, 0.90, 0.80, 0.70, 0.60, 0.50}; double best = 0; Wf all[2] = {{0}, {0}};
+    for (long i = 0; i < NS; i++) wpush(&all[cls[i]], tm[i]);
+    printf("samples=%ld mode=%s fixed_mean=%.0fns random_mean=%.0fns\n", NS, nullt ? "NULL(random-vs-random)" : "fixed-vs-random", all[0].mean, all[1].mean);
+    for (unsigned q = 0; q < sizeof pc / sizeof *pc; q++) {
+        double thr = srt[(long)((NS - 1) * pc[q])]; Wf w[2] = {{0}, {0}};
+        for (long i = 0; i < NS; i++) if (tm[i] <= thr) wpush(&w[cls[i]], tm[i]);
+        double t = wt(&w[0], &w[1]); printf("  crop<=p%.0f t=%+.3f\n", pc[q] * 100, t); if (fabs(t) > fabs(best)) best = t;
+    }
+    Wf s2[2] = {{0}, {0}}; for (long i = 0; i < NS; i++) { double d = tm[i] - all[cls[i]].mean; wpush(&s2[cls[i]], d * d); }
+    double t2 = wt(&s2[0], &s2[1]); printf("  second-order t=%+.3f\n", t2); if (fabs(t2) > fabs(best)) best = t2;
+    printf("RESULT sign N=%ld max|t|=%.3f %s\n", NS, fabs(best), fabs(best) > 4.5 ? "LEAK-DETECTED(>4.5)" : "no-leak-detected(<=4.5)");
     return 0;
 }

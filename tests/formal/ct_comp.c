@@ -50,6 +50,29 @@ static void prep(const char *c, int cls) {
         if (!strcmp(c, "cosetrep")) { monomial_sample_prikey(&Qm, pseed); monomial_compose_action(&mono_action, &Qm, &pi_tilde); }
     }
 }
+/* Pool of pre-built inputs (building one costs ~6 ms: monomial mul + RREF), so class 1 draws from POOL random inputs and class 0 always
+ * uses entry 0 (the fixed secret). Without the pool 10M samples would cost 17 h per component in preparation alone. */
+#ifndef POOL
+#define POOL 2048
+#endif
+typedef struct { generator_mat_t G0; uint8_t permuted[N_pad]; normalized_IS_t A; monomial_action_IS_t act; } Item;
+static Item *pool;
+static void build_item(const char *c, Item *it, int cls_random) {
+    if (cls_random) { fillr(pseed, sizeof pseed); fillr(eseed, sizeof eseed); } else { memcpy(pseed, fixed_pseed, sizeof pseed); memcpy(eseed, fixed_eseed, sizeof eseed); }
+    mk_rref(); it->G0 = G0; memcpy(it->permuted, permuted, N_pad);
+    if (!strcmp(c, "blindcf") || !strcmp(c, "cosetrep")) {
+        (void)generator_RREF_pivot_reuse_ct(&G0, is_piv, permuted, SIGN_PIVOT_REUSE_LIMIT);
+        normalized_copy_from_generator_non_information_set(&A, &G0, is_piv); it->A = A;
+        monomial_compose_action_information_set(&pi_tilde, &mono, is_piv);
+        monomial_sample_prikey(&Qm, pseed); monomial_compose_action(&mono_action, &Qm, &pi_tilde); it->act = mono_action;
+    }
+}
+static void prep_pooled(const char *c, int cls) {
+    Item *it = &pool[cls ? 1 + (rnd64() % (POOL - 1)) : 0];
+    if (!strcmp(c, "rref")) { G0 = it->G0; memcpy(permuted, it->permuted, N_pad); memset(is_piv, 0, N_pad); }
+    else if (!strcmp(c, "blindcf")) { A = it->A; uint8_t cs[SEED_LENGTH_BYTES]; fillr(cs, sizeof cs); initialize_csprng(&cfstate, cs, SEED_LENGTH_BYTES); }
+    else mono_action = it->act;
+}
 static volatile int sink;
 static void run(const char *c) {
     if (!strcmp(c, "control")) { int i; for (i = 0; i < 32; i++) if (ca[i] != cb[i]) break; sink = i; }
@@ -74,9 +97,12 @@ int main(int argc, char **argv) {
     fillr(fixed_pseed, sizeof fixed_pseed); fillr(fixed_eseed, sizeof fixed_eseed); fillr(salt, sizeof salt);
     uint8_t g0seed[SEED_LENGTH_BYTES]; fillr(g0seed, sizeof g0seed);
     static rref_generator_mat_t G0r; generator_sample(&G0r, g0seed); generator_get_pivot_flags(&G0r, g0_flags); generator_rref_expand(&full_G0, &G0r);
+    if (!strcmp(c, "rref") || !strcmp(c, "blindcf") || !strcmp(c, "cosetrep")) {
+        pool = malloc(sizeof(Item) * POOL); for (int i = 0; i < POOL; i++) build_item(c, &pool[i], i != 0);
+    }
     uint32_t *tm = malloc(sizeof(uint32_t) * NS); uint8_t *cls = malloc(NS);
     for (long i = 0; i < NS + 2000; i++) {
-        int k = (int)(rnd64() >> 63); prep(c, k);
+        int k = (int)(rnd64() >> 63); if (pool) prep_pooled(c, getenv("NULLTEST") ? 1 : k); else prep(c, getenv("NULLTEST") ? 1 : k); /* NULLTEST=1: both classes random (harness false-positive control) */
         uint64_t t0 = cyc(); run(c); uint64_t t1 = cyc();
         if (i >= 2000) { long j = i - 2000; cls[j] = (uint8_t)k; uint64_t d = t1 - t0; tm[j] = d > 0xFFFFFFFFu ? 0xFFFFFFFFu : (uint32_t)d; }
     }
