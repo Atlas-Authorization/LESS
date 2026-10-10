@@ -28,6 +28,7 @@ void sha3_256_inc_init(sha3_256incctx *s) { HAVOC(s, sizeof *s); }
 void sha3_256_inc_absorb(sha3_256incctx *s, const uint8_t *in, size_t n) { RD(s, sizeof *s); RD(in, n); }
 void sha3_256_inc_finalize(uint8_t *out, sha3_256incctx *s) { RD(s, sizeof *s); HAVOC(out, 32); }
 
+#ifndef REAL_SAMPLECHALLENGE
 /* ---- SampleChallenge: modelled as a FUNCTION of the digest (same digest => same output, since crypto_sign_open
  * and LESS_verify both call it on the same bytes) whose output has EXACTLY W non-zero entries, each in
  * [1, NUM_KEYPAIRS-1] (the contract of utils.c SampleChallenge; discharged separately in harness_samplechallenge.c). ---- */
@@ -42,6 +43,7 @@ void SampleChallenge(uint8_t fws[T], const uint8_t digest[HASH_DIGEST_LENGTH]) {
     __CPROVER_assume(w == W);
     memcpy(fws, t, T); memcpy(sc_out, t, T); memcpy(sc_digest, digest, HASH_DIGEST_LENGTH); sc_have = 1;
 }
+#endif
 
 /* ---- matrix / code layer (signature-independent: operands are derived from the public key and seeds) ---- */
 void generator_sample(rref_generator_mat_t *r, const unsigned char seed[SEED_LENGTH_BYTES]) { RD(seed, SEED_LENGTH_BYTES); HAVOC(r, sizeof *r); }
