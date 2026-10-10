@@ -1,0 +1,43 @@
+# Every-single-bit-flip sweep (tests/sweep-bits.sh, sanitized -O2 ASan+UBSan build) of one valid signature
+# (keygen seed 03 x48, message 'fuzz', signature length 1297 bytes = 10376 bit flips incl. the trailer byte).
+# Run 1: range [0,1297) with 10 shards, 280 s alarm per shard. Shards for [0,780) completed; shards for [780,1297) hit the alarm (exit 142) and are NOT counted.
+# Run 2: range [780,1297) re-run with 10 shards.
+## run 1 (completed shards, bytes [0,780))
+shard_0: exit=0 range=[0,130)
+shard_1: exit=0 range=[130,260)
+shard_2: exit=0 range=[260,390)
+shard_3: exit=0 range=[390,520)
+shard_4: exit=0 range=[520,650)
+shard_5: exit=0 range=[650,780)
+shard_6: exit=142 range=[780,910)
+shard_7: exit=142 range=[910,1040)
+shard_8: exit=142 range=[1040,1170)
+shard_9: exit=142 range=[1170,1297)
+shard_2.out:done tried=1040 accepted=0 skipped_unsafe=0
+shard_0.out:done tried=1040 accepted=0 skipped_unsafe=0
+shard_1.out:done tried=1040 accepted=0 skipped_unsafe=0
+shard_3.out:done tried=1040 accepted=0 skipped_unsafe=0
+shard_5.out:done tried=1040 accepted=0 skipped_unsafe=0
+shard_4.out:done tried=1040 accepted=0 skipped_unsafe=0
+## run 2 (bytes [780,1297))
+shard_0: exit=0 range=[780,832)
+shard_1: exit=0 range=[832,884)
+shard_2: exit=0 range=[884,936)
+shard_3: exit=0 range=[936,988)
+shard_4: exit=0 range=[988,1040)
+shard_5: exit=0 range=[1040,1092)
+shard_6: exit=0 range=[1092,1144)
+shard_7: exit=0 range=[1144,1196)
+shard_8: exit=0 range=[1196,1248)
+shard_9: exit=0 range=[1248,1297)
+shard_3.out:done tried=416 accepted=0 skipped_unsafe=0
+shard_2.out:done tried=416 accepted=0 skipped_unsafe=0
+shard_1.out:done tried=416 accepted=0 skipped_unsafe=0
+shard_0.out:done tried=416 accepted=0 skipped_unsafe=0
+shard_7.out:done tried=416 accepted=0 skipped_unsafe=0
+shard_6.out:done tried=416 accepted=0 skipped_unsafe=0
+shard_4.out:done tried=416 accepted=0 skipped_unsafe=0
+shard_5.out:done tried=416 accepted=0 skipped_unsafe=0
+shard_8.out:done tried=416 accepted=0 skipped_unsafe=0
+shard_9.out:done tried=392 accepted=0 skipped_unsafe=0
+## totals: flips tried = 6*1040 + 9*416 + 392 = 10376 (expected 1297*8 = 10376); accepted = 0; accepted lines printed = 0

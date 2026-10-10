@@ -1,0 +1,18 @@
+batch 0: shards=10 per_shard=400 verdicts=4000 rejected_rc-1=4000 accepted_rc0=0 anomalous_shards=0
+cumulative verdicts=4000 (target 200000)
+batch 1: shards=10 per_shard=400 verdicts=4000 rejected_rc-1=4000 accepted_rc0=0 anomalous_shards=0
+cumulative verdicts=8000 (target 200000)
+batch 2: shards=10 per_shard=400 verdicts=4000 rejected_rc-1=4000 accepted_rc0=0 anomalous_shards=0
+cumulative verdicts=12000 (target 200000)
+batch 3: shards=10 per_shard=400 verdicts=4000 rejected_rc-1=4000 accepted_rc0=0 anomalous_shards=0
+cumulative verdicts=16000 (target 200000)
+batch 4: shards=10 per_shard=400 verdicts=4000 rejected_rc-1=4000 accepted_rc0=0 anomalous_shards=0
+cumulative verdicts=20000 (target 200000)
+/private/tmp/less-fork/fork/tests/fuzz-batch.sh: line 21: 65559 Alarm clock: 14         perl -e 'alarm shift; exec @ARGV' "$TMO" "$BIN" open < "$OUT/b${BATCH}_s${s}.in" > "$OUT/b${BATCH}_s${s}.out" 2> "$OUT/b${BATCH}_s${s}.err"
+/private/tmp/less-fork/fork/tests/fuzz-batch.sh: line 21: 65570 Alarm clock: 14         perl -e 'alarm shift; exec @ARGV' "$TMO" "$BIN" open < "$OUT/b${BATCH}_s${s}.in" > "$OUT/b${BATCH}_s${s}.out" 2> "$OUT/b${BATCH}_s${s}.err"
+/private/tmp/less-fork/fork/tests/fuzz-batch.sh: line 21: 65623 Alarm clock: 14         perl -e 'alarm shift; exec @ARGV' "$TMO" "$BIN" open < "$OUT/b${BATCH}_s${s}.in" > "$OUT/b${BATCH}_s${s}.out" 2> "$OUT/b${BATCH}_s${s}.err"
+shard 0: status=142 verdicts=397/400 stderr_bytes=0 accepted=0 (ANOMALY)
+shard 7: status=142 verdicts=370/400 stderr_bytes=0 accepted=0 (ANOMALY)
+shard 8: status=142 verdicts=377/400 stderr_bytes=0 accepted=0 (ANOMALY)
+batch 5: shards=10 per_shard=400 verdicts=3944 rejected_rc-1=3944 accepted_rc0=0 anomalous_shards=3
+STOP: anomaly in batch 5 (see lines above)

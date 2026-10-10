@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L   /* getline/ssize_t under -std=c99 on Linux (no-op semantics on macOS) */
 /* less_native_driver.c -- native (non-wasm) line-oriented driver around the UNMODIFIED upstream
  * LESS reference NIST wrappers (crypto_sign_keypair / crypto_sign / crypto_sign_open).
  * It exists only to cross-check the wasm build; it contains no cryptography of its own.

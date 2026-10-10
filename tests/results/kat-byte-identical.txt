@@ -1,0 +1,5 @@
+# tests/kat-check.sh (byte-for-byte vs Utilities/KAT_Generation/KAT, CATEGORY=252 TARGET=45, patched lib/)
+REQ identical
+RSP identical (100 entries)
+2a9a37787a689a90e49bf74adfdec13483896e586620501030f358ec9752d59f  /private/tmp/less-fork/final/kat/PQCsignKAT_97484.rsp
+2a9a37787a689a90e49bf74adfdec13483896e586620501030f358ec9752d59f  Utilities/KAT_Generation/KAT/PQCsignKAT_97484.rsp

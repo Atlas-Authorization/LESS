@@ -1,0 +1,16 @@
+# Alone re-runs of the 3 slowest inputs of the batch-5 shards that exited 142 (less_san_O2 = ASan+UBSan -O2; NO alarm, perl guard 900 s only)
+# wall-clock is inflated by machine load (load average 14-117 during these runs); user CPU is the load-independent measure.
+# line = 1-based line of the shard input file; class from the mutator sidecar
+shard=0 line=238 class=seeds run=1: -1 5 real 4.18 user 0.36 sys 0.11 
+shard=0 line=238 class=seeds run=2: -1 5 real 4.23 user 0.38 sys 0.06 
+shard=0 line=238 class=seeds run=3: -1 5 real 4.02 user 0.39 sys 0.11 
+shard=7 line=231 class=msgbit run=1: -1 5 real 3.50 user 0.39 sys 0.13 
+shard=7 line=231 class=msgbit run=2: -1 5 real 2.78 user 0.36 sys 0.05 
+shard=7 line=231 class=msgbit run=3: -1 5 real 6.20 user 0.34 sys 0.12 
+shard=8 line=221 class=seeds run=1: -1 5 real 3.93 user 0.34 sys 0.12 
+shard=8 line=221 class=seeds run=2: -1 5 real 3.62 user 0.36 sys 0.07 
+shard=8 line=221 class=seeds run=3: -1 5 real 3.82 user 0.35 sys 0.11 
+# full shard re-runs (no alarm), per-input wall seconds from timed.pl; 400 verdicts each:
+shard 0: SUMMARY n=400 mean=0.2727 max=3.2377 max_idx=238 verdict_lines=     400 rc_values= 400 -1 
+shard 7: SUMMARY n=400 mean=0.2694 max=2.7217 max_idx=231 verdict_lines=     400 rc_values= 400 -1 
+shard 8: SUMMARY n=400 mean=0.2760 max=3.4104 max_idx=221 verdict_lines=     400 rc_values= 400 -1 

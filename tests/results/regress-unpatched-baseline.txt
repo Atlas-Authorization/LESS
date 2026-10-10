@@ -1,0 +1,6 @@
+d1_empty: exit=134 first=/tmp/less-fork/fork/Reference_Implementation/lib/sign.c:74:41: runtime error: addition of unsigned offset to 0x6020000000d0 overflowed to 0x6020000000cf
+d1_leafcount_9_to_11: exit=134 first===79764==ERROR: AddressSanitizer: negative-size-param: (size=-28)
+d1_short: exit=134 first===79785==ERROR: AddressSanitizer: negative-size-param: (size=-1257)
+d2_padding_bit_row0: exit=134 first===79792==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x00016b79150c at pc 0x000104689044 bp 0x00016b742bb0 sp 0x00016b742ba8
+d3_forged_digest: exit=134 first===79799==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x61a000000596 at pc 0x0001015eac84 bp 0x00016f01e690 sp 0x00016f01de40
+valid: exit=0 first=0 4

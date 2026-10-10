@@ -1,0 +1,7 @@
+ok   d1_empty rc=-1
+ok   d1_leafcount_9_to_11 rc=-1
+ok   d1_short rc=-1
+ok   d2_padding_bit_row0 rc=-1
+ok   d3_forged_digest rc=-1
+ok   valid rc=0
+exit=0
