@@ -17,7 +17,7 @@ head, fn = src[:start], src[start:]
 end = fn.index('\n}\n') + 3; fn, tail = fn[:end], fn[end:]
 # loop-invariant rule on both rejection loops (same rewrite as overlay-sc.py)
 assert len(re.findall(r'^\s*do \{\s*$', fn, re.M)) == 2
-fn = re.sub(r'^(\s*)do \{\s*$', r'\1{ c = nondet_sc_u32(); __CPROVER_assume(c <= 64u); rnd_buf = nondet_sc_u64();', fn, flags=re.M)
+fn = re.sub(r'^(\s*)do \{\s*$', r'\1{ __CPROVER_assert(c <= 64u, "rejection-loop invariant holds on entry"); c = nondet_sc_u32(); __CPROVER_assume(c <= 64u); rnd_buf = nondet_sc_u64();', fn, flags=re.M)
 fn, k = re.subn(r'^(\s*)\} while \((.*)\);\s*$', r'\1  __CPROVER_assert(c <= 64u, "rejection-loop invariant c <= 64 preserved"); __CPROVER_assume(!(\2)); }', fn, flags=re.M)
 assert k == 2
 hdr = 'for (uint32_t p = T - W; p < T; p++) {'
@@ -42,6 +42,20 @@ void sc_shuffle_step(uint8_t fixed_weight_string[T]) {
     __CPROVER_assume(p >= T - W && p < T && sc_IB(fixed_weight_string, c));
     {''' + body + '''}
     __CPROVER_assert(sc_IB(fixed_weight_string, c), "shuffle-loop invariant preserved by one iteration");
+}
+/* FRAME form of the step (for the decomposed proof): from ANY array and any c <= 64, one verbatim iteration exchanges exactly the
+ * entries at p and pos (pos <= p) and changes nothing else. Together with the transposition lemma (count and range are invariant under
+ * exchanging two entries; tools/pca-implverif/verus/swap_count.rs) this gives the IB step without a global popcount in SAT. */
+uint32_t nondet_sc_k(void);
+void sc_shuffle_frame(uint8_t fixed_weight_string[T]) {
+    SHAKE_STATE_STRUCT shake_state;
+    uint64_t rnd_buf = nondet_sc_u64(); uint32_t c = nondet_sc_u32(); uint32_t p = nondet_sc_u32();
+    __CPROVER_assume(p >= T - W && p < T && c <= 64u);
+    uint8_t old[T]; for (unsigned k = 0; k < T; k++) old[k] = fixed_weight_string[k];
+''' + body + '''
+    __CPROVER_assert(pos <= p && c <= 64u, "frame: pos <= p, invariant on c");
+    uint32_t k = nondet_sc_k(); __CPROVER_assume(k < T);
+    __CPROVER_assert(fixed_weight_string[k] == (k == p ? old[pos] : (k == pos ? old[p] : old[k])), "frame: exactly entries p and pos exchanged");
 }
 ''' + tail
 open(sys.argv[2], 'w').write(out)
