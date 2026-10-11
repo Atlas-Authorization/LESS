@@ -14,9 +14,9 @@ import re, sys, difflib
 src = open(sys.argv[1]).read()
 start = src.index('void SampleChallenge(')
 head, body = src[:start], src[start:]
-head += 'uint32_t sc_nondet_u32(void);\nuint64_t sc_nondet_u64(void);\n\n'
+head += 'uint32_t nondet_sc_u32(void);\nuint64_t nondet_sc_u64(void);\n\n'
 assert len(re.findall(r'^\s*do \{\s*$', body, re.M)) == 2
-body = re.sub(r'^(\s*)do \{\s*$', r'\1{ c = sc_nondet_u32(); __CPROVER_assume(c <= 64u); rnd_buf = sc_nondet_u64();', body, flags=re.M)
+body = re.sub(r'^(\s*)do \{\s*$', r'\1{ c = nondet_sc_u32(); __CPROVER_assume(c <= 64u); rnd_buf = nondet_sc_u64();', body, flags=re.M)
 body, k = re.subn(r'^(\s*)\} while \((.*)\);\s*$', r'\1  __CPROVER_assert(c <= 64u, "rejection-loop invariant c <= 64 preserved"); __CPROVER_assume(!(\2)); }', body, flags=re.M)
 assert k == 2, k
 out = head + body
